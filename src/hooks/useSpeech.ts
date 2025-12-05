@@ -57,9 +57,12 @@ declare global {
 interface UseSpeechReturn {
   // Speech Recognition
   isListening: boolean;
+  isRecordingAnswer: boolean;
   transcript: string;
-  startListening: () => void;
-  stopListening: () => void;
+  startCommandListening: () => void;
+  stopCommandListening: () => void;
+  startAnswerRecording: () => void;
+  stopAnswerRecording: () => void;
   resetTranscript: () => void;
 
   // Speech Synthesis
@@ -69,6 +72,7 @@ interface UseSpeechReturn {
 
   // Voice Commands
   lastCommand: string | null;
+  clearLastCommand: () => void;
 
   // Support
   speechRecognitionSupported: boolean;
@@ -85,6 +89,7 @@ const VOICE_COMMANDS = {
 
 export function useSpeech(): UseSpeechReturn {
   const [isListening, setIsListening] = useState(false);
+  const [isRecordingAnswer, setIsRecordingAnswer] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [lastCommand, setLastCommand] = useState<string | null>(null);
@@ -93,7 +98,8 @@ export function useSpeech(): UseSpeechReturn {
 
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const isListeningRef = useRef(false); // Use ref to track listening state for closure
+  const isListeningRef = useRef(false);
+  const isRecordingAnswerRef = useRef(false);
 
   // Initialize speech APIs
   useEffect(() => {
@@ -114,20 +120,28 @@ export function useSpeech(): UseSpeechReturn {
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
             if (result.isFinal) {
-              finalTranscript += result[0].transcript;
+              const text = result[0].transcript;
 
               // Check for voice commands
-              const text = result[0].transcript.toLowerCase();
+              const lowerText = text.toLowerCase();
+              let commandFound = false;
               for (const [command, triggers] of Object.entries(VOICE_COMMANDS)) {
-                if (triggers.some(trigger => text.includes(trigger))) {
+                if (triggers.some(trigger => lowerText.includes(trigger))) {
+                  console.log('Voice command detected:', command);
                   setLastCommand(command);
+                  commandFound = true;
                   break;
                 }
+              }
+
+              // Only add to transcript if recording answer and not a command
+              if (isRecordingAnswerRef.current && !commandFound) {
+                finalTranscript += text;
               }
             }
           }
 
-          if (finalTranscript) {
+          if (finalTranscript && isRecordingAnswerRef.current) {
             setTranscript(prev => prev + finalTranscript);
           }
         };
@@ -135,26 +149,23 @@ export function useSpeech(): UseSpeechReturn {
         recognition.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
           if (event.error !== 'no-speech' && event.error !== 'aborted') {
-            setIsListening(false);
-            isListeningRef.current = false;
+            // Don't stop listening on minor errors
           }
         };
 
         recognition.onend = () => {
-          // Use ref to check current listening state (avoids closure issue)
+          // Always restart if we're supposed to be listening
           if (isListeningRef.current) {
-            // Restart if we're still supposed to be listening
-            try {
-              setTimeout(() => {
-                if (isListeningRef.current && recognitionRef.current) {
+            setTimeout(() => {
+              if (isListeningRef.current && recognitionRef.current) {
+                try {
                   recognitionRef.current.start();
+                  console.log('Speech recognition restarted');
+                } catch (e) {
+                  console.error('Failed to restart recognition:', e);
                 }
-              }, 100);
-            } catch (e) {
-              console.error('Failed to restart recognition:', e);
-              setIsListening(false);
-              isListeningRef.current = false;
-            }
+              }
+            }, 100);
           }
         };
 
@@ -176,34 +187,59 @@ export function useSpeech(): UseSpeechReturn {
         synthRef.current.cancel();
       }
     };
-  }, []); // Only run once on mount
+  }, []);
 
-  const startListening = useCallback(() => {
+  // Start listening for commands (always on in background)
+  const startCommandListening = useCallback(() => {
     if (recognitionRef.current && !isListeningRef.current) {
-      setTranscript('');
-      setLastCommand(null);
       try {
         recognitionRef.current.start();
         setIsListening(true);
         isListeningRef.current = true;
-        console.log('Speech recognition started');
+        console.log('Command listening started');
       } catch (e) {
-        console.error('Failed to start recognition:', e);
+        console.error('Failed to start command listening:', e);
       }
     }
   }, []);
 
-  const stopListening = useCallback(() => {
+  // Stop listening for commands
+  const stopCommandListening = useCallback(() => {
     if (recognitionRef.current) {
       isListeningRef.current = false;
+      isRecordingAnswerRef.current = false;
       setIsListening(false);
+      setIsRecordingAnswer(false);
       recognitionRef.current.stop();
-      console.log('Speech recognition stopped');
+      console.log('Command listening stopped');
     }
+  }, []);
+
+  // Start recording answer (transcript will be captured)
+  const startAnswerRecording = useCallback(() => {
+    setTranscript('');
+    setIsRecordingAnswer(true);
+    isRecordingAnswerRef.current = true;
+    console.log('Answer recording started');
+
+    // Make sure we're listening
+    if (!isListeningRef.current) {
+      startCommandListening();
+    }
+  }, [startCommandListening]);
+
+  // Stop recording answer
+  const stopAnswerRecording = useCallback(() => {
+    setIsRecordingAnswer(false);
+    isRecordingAnswerRef.current = false;
+    console.log('Answer recording stopped');
   }, []);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
+  }, []);
+
+  const clearLastCommand = useCallback(() => {
     setLastCommand(null);
   }, []);
 
@@ -242,7 +278,7 @@ export function useSpeech(): UseSpeechReturn {
       utterance.onerror = (event) => {
         console.warn('Speech synthesis error:', event.error);
         setIsSpeaking(false);
-        resolve(); // Don't reject, just continue
+        resolve();
       };
 
       synthRef.current.speak(utterance);
@@ -258,14 +294,18 @@ export function useSpeech(): UseSpeechReturn {
 
   return {
     isListening,
+    isRecordingAnswer,
     transcript,
-    startListening,
-    stopListening,
+    startCommandListening,
+    stopCommandListening,
+    startAnswerRecording,
+    stopAnswerRecording,
     resetTranscript,
     isSpeaking,
     speak,
     stopSpeaking,
     lastCommand,
+    clearLastCommand,
     speechRecognitionSupported,
     speechSynthesisSupported,
   };

@@ -34,6 +34,7 @@ export default function PracticePage() {
   const [error, setError] = useState<string | null>(null);
   const [autoReadEnabled, setAutoReadEnabled] = useState(true);
   const hasReadCurrentQuestion = useRef(false);
+  const hasStartedListening = useRef(false);
 
   // Load session data and generate questions
   useEffect(() => {
@@ -80,6 +81,18 @@ export default function PracticePage() {
     loadSession();
   }, [router]);
 
+  // Start command listening when entering question phase
+  useEffect(() => {
+    if (phase === 'question' && speech.speechRecognitionSupported && !hasStartedListening.current) {
+      hasStartedListening.current = true;
+      // Small delay to let the page settle
+      setTimeout(() => {
+        speech.startCommandListening();
+        console.log('Started command listening for voice commands');
+      }, 1000);
+    }
+  }, [phase, speech.speechRecognitionSupported]);
+
   // Read question aloud when entering question phase (only once per question)
   useEffect(() => {
     if (phase !== 'question' || !questions[currentIndex] || !autoReadEnabled) {
@@ -125,15 +138,17 @@ export default function PracticePage() {
   useEffect(() => {
     if (!speech.lastCommand) return;
 
+    console.log('Handling voice command:', speech.lastCommand);
+
     switch (speech.lastCommand) {
       case 'START_ANSWER':
-        if (phase === 'question' && !speech.isListening) {
-          speech.startListening();
+        if (phase === 'question' && !speech.isRecordingAnswer) {
+          speech.startAnswerRecording();
         }
         break;
       case 'STOP_ANSWER':
-        if (speech.isListening) {
-          speech.stopListening();
+        if (speech.isRecordingAnswer) {
+          speech.stopAnswerRecording();
         }
         break;
       case 'NEXT':
@@ -152,13 +167,16 @@ export default function PracticePage() {
         }
         break;
     }
+
+    // Clear the command after handling
+    speech.clearLastCommand();
   }, [speech.lastCommand]);
 
   const handleSubmitAnswer = async (answer: string) => {
     if (!sessionData || !questions[currentIndex]) return;
 
     setIsSubmitting(true);
-    speech.stopListening();
+    speech.stopAnswerRecording();
 
     const newAnswer: Answer = {
       questionId: questions[currentIndex].id,
@@ -209,6 +227,8 @@ export default function PracticePage() {
   };
 
   const handleSkip = async () => {
+    speech.stopAnswerRecording();
+
     const skipAnswer: Answer = {
       questionId: questions[currentIndex].id,
       userAnswer: '',
@@ -240,6 +260,7 @@ export default function PracticePage() {
       setCurrentEvaluation(null);
       setPhase('question');
     } else {
+      speech.stopCommandListening();
       setPhase('results');
     }
   }, [currentIndex, questions.length, speech]);
@@ -264,6 +285,7 @@ export default function PracticePage() {
     setAnswers([]);
     setEvaluations([]);
     setCurrentEvaluation(null);
+    hasStartedListening.current = false;
     setPhase('loading');
 
     // Re-trigger loading
@@ -294,6 +316,7 @@ export default function PracticePage() {
   };
 
   const handleNewSession = () => {
+    speech.stopCommandListening();
     sessionStorage.removeItem('examSession');
     router.push('/');
   };
@@ -363,8 +386,16 @@ export default function PracticePage() {
             </svg>
             終了
           </button>
-          <div className="text-sm text-gray-700">
-            {sessionData?.pdfFileName}
+          <div className="flex items-center gap-2">
+            {speech.isListening && (
+              <span className="flex items-center gap-1 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                音声待機中
+              </span>
+            )}
+            <span className="text-sm text-gray-700">
+              {sessionData?.pdfFileName}
+            </span>
           </div>
         </header>
 
@@ -398,9 +429,10 @@ export default function PracticePage() {
           {phase === 'question' && (
             <AnswerInput
               isListening={speech.isListening}
+              isRecordingAnswer={speech.isRecordingAnswer}
               transcript={speech.transcript}
-              onStartListening={speech.startListening}
-              onStopListening={speech.stopListening}
+              onStartRecording={speech.startAnswerRecording}
+              onStopRecording={speech.stopAnswerRecording}
               onSubmit={handleSubmitAnswer}
               onSkip={handleSkip}
               isSubmitting={isSubmitting}

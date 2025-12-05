@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 
 interface AnswerInputProps {
   isListening: boolean;
+  isRecordingAnswer: boolean;
   transcript: string;
-  onStartListening: () => void;
-  onStopListening: () => void;
+  onStartRecording: () => void;
+  onStopRecording: () => void;
   onSubmit: (answer: string) => void;
   onSkip: () => void;
   isSubmitting?: boolean;
@@ -15,9 +16,10 @@ interface AnswerInputProps {
 
 export function AnswerInput({
   isListening,
+  isRecordingAnswer,
   transcript,
-  onStartListening,
-  onStopListening,
+  onStartRecording,
+  onStopRecording,
   onSubmit,
   onSkip,
   isSubmitting,
@@ -41,11 +43,11 @@ export function AnswerInput({
   };
 
   const handleVoiceToggle = () => {
-    if (isListening) {
-      onStopListening();
+    if (isRecordingAnswer) {
+      onStopRecording();
     } else {
       setTextInput('');
-      onStartListening();
+      onStartRecording();
     }
   };
 
@@ -84,13 +86,29 @@ export function AnswerInput({
             </div>
           ) : (
             <>
+              {/* Status indicator */}
+              <div className="flex justify-center items-center gap-2 mb-2">
+                {isListening && !isRecordingAnswer && (
+                  <span className="text-sm text-green-600 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    音声コマンド待機中（「回答開始」で録音）
+                  </span>
+                )}
+                {isRecordingAnswer && (
+                  <span className="text-sm text-red-600 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    録音中...（「回答終了」で停止）
+                  </span>
+                )}
+              </div>
+
               <div className="flex justify-center">
                 <button
                   onClick={handleVoiceToggle}
                   disabled={isSubmitting}
                   className={`
                     w-24 h-24 rounded-full flex items-center justify-center transition-all
-                    ${isListening
+                    ${isRecordingAnswer
                       ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                       : 'bg-blue-600 hover:bg-blue-700'}
                     ${isSubmitting ? 'opacity-50' : ''}
@@ -102,7 +120,7 @@ export function AnswerInput({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    {isListening ? (
+                    {isRecordingAnswer ? (
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -121,7 +139,9 @@ export function AnswerInput({
                 </button>
               </div>
               <p className="text-center text-sm text-gray-700">
-                {isListening ? '「回答終了」または停止ボタンで終了' : '「回答開始」または開始ボタンで録音'}
+                {isRecordingAnswer
+                  ? 'ボタンまたは「回答終了」で停止'
+                  : 'ボタンまたは「回答開始」で録音'}
               </p>
             </>
           )}
@@ -174,7 +194,7 @@ export function AnswerInput({
       {/* Voice Command Help */}
       {speechRecognitionSupported && (
         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs font-medium text-gray-700 mb-1">音声コマンド</p>
+          <p className="text-xs font-medium text-gray-700 mb-1">音声コマンド（常時待機中）</p>
           <p className="text-xs text-gray-700">
             「回答開始」「回答終了」「次へ」「スキップ」「もう一度」
           </p>
