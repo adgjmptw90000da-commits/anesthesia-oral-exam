@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSpeech } from '@/hooks/useSpeech';
 import { QuestionDisplay } from '@/components/QuestionDisplay';
@@ -32,6 +32,8 @@ export default function PracticePage() {
   const [currentEvaluation, setCurrentEvaluation] = useState<Evaluation | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoReadEnabled, setAutoReadEnabled] = useState(true);
+  const hasReadCurrentQuestion = useRef(false);
 
   // Load session data and generate questions
   useEffect(() => {
@@ -78,9 +80,11 @@ export default function PracticePage() {
     loadSession();
   }, [router]);
 
-  // Read question aloud when entering question phase
+  // Read question aloud when entering question phase (only once per question)
   useEffect(() => {
-    if (phase === 'question' && questions[currentIndex] && speech.speechSynthesisSupported) {
+    if (phase === 'question' && questions[currentIndex] && autoReadEnabled && !hasReadCurrentQuestion.current) {
+      hasReadCurrentQuestion.current = true;
+
       const readQuestion = async () => {
         // Small delay to ensure UI is ready
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -102,7 +106,12 @@ export default function PracticePage() {
 
       readQuestion();
     }
-  }, [phase, currentIndex, questions, scenarioContext, speech]);
+  }, [phase, currentIndex, questions, scenarioContext, autoReadEnabled, speech.speak]);
+
+  // Reset read flag when question changes
+  useEffect(() => {
+    hasReadCurrentQuestion.current = false;
+  }, [currentIndex]);
 
   // Handle voice commands
   useEffect(() => {
