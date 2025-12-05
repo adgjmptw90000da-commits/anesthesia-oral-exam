@@ -138,7 +138,7 @@ export function AnswerInput({
           onChange={(e) => setTextInput(e.target.value)}
           placeholder={inputMode === 'voice' ? '音声入力した内容がここに表示されます（編集可能）' : '回答を入力してください'}
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-black placeholder:text-gray-500"
           disabled={isSubmitting}
         />
       </div>
