@@ -93,14 +93,16 @@ export function useSpeech(): UseSpeechReturn {
 
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const isListeningRef = useRef(false); // Use ref to track listening state for closure
 
+  // Initialize speech APIs
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       setSpeechRecognitionSupported(!!SpeechRecognition);
       setSpeechSynthesisSupported('speechSynthesis' in window);
 
-      if (SpeechRecognition) {
+      if (SpeechRecognition && !recognitionRef.current) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'ja-JP';
         recognition.continuous = true;
@@ -108,7 +110,6 @@ export function useSpeech(): UseSpeechReturn {
 
         recognition.onresult = (event) => {
           let finalTranscript = '';
-          let interimTranscript = '';
 
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const result = event.results[i];
@@ -123,8 +124,6 @@ export function useSpeech(): UseSpeechReturn {
                   break;
                 }
               }
-            } else {
-              interimTranscript += result[0].transcript;
             }
           }
 
@@ -135,18 +134,26 @@ export function useSpeech(): UseSpeechReturn {
 
         recognition.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
-          if (event.error !== 'no-speech') {
+          if (event.error !== 'no-speech' && event.error !== 'aborted') {
             setIsListening(false);
+            isListeningRef.current = false;
           }
         };
 
         recognition.onend = () => {
-          if (isListening) {
+          // Use ref to check current listening state (avoids closure issue)
+          if (isListeningRef.current) {
             // Restart if we're still supposed to be listening
             try {
-              recognition.start();
+              setTimeout(() => {
+                if (isListeningRef.current && recognitionRef.current) {
+                  recognitionRef.current.start();
+                }
+              }, 100);
             } catch (e) {
+              console.error('Failed to restart recognition:', e);
               setIsListening(false);
+              isListeningRef.current = false;
             }
           }
         };
@@ -156,6 +163,8 @@ export function useSpeech(): UseSpeechReturn {
 
       if ('speechSynthesis' in window) {
         synthRef.current = window.speechSynthesis;
+        // Pre-load voices
+        window.speechSynthesis.getVoices();
       }
     }
 
@@ -167,27 +176,31 @@ export function useSpeech(): UseSpeechReturn {
         synthRef.current.cancel();
       }
     };
-  }, [isListening]);
+  }, []); // Only run once on mount
 
   const startListening = useCallback(() => {
-    if (recognitionRef.current && !isListening) {
+    if (recognitionRef.current && !isListeningRef.current) {
       setTranscript('');
       setLastCommand(null);
       try {
         recognitionRef.current.start();
         setIsListening(true);
+        isListeningRef.current = true;
+        console.log('Speech recognition started');
       } catch (e) {
         console.error('Failed to start recognition:', e);
       }
     }
-  }, [isListening]);
+  }, []);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
+    if (recognitionRef.current) {
+      isListeningRef.current = false;
       setIsListening(false);
+      recognitionRef.current.stop();
+      console.log('Speech recognition stopped');
     }
-  }, [isListening]);
+  }, []);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
@@ -217,9 +230,13 @@ export function useSpeech(): UseSpeechReturn {
         utterance.voice = japaneseVoice;
       }
 
-      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        console.log('Speech started');
+      };
       utterance.onend = () => {
         setIsSpeaking(false);
+        console.log('Speech ended');
         resolve();
       };
       utterance.onerror = (event) => {

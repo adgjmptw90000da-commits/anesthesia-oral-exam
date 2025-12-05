@@ -82,31 +82,39 @@ export default function PracticePage() {
 
   // Read question aloud when entering question phase (only once per question)
   useEffect(() => {
-    if (phase === 'question' && questions[currentIndex] && autoReadEnabled && !hasReadCurrentQuestion.current) {
-      hasReadCurrentQuestion.current = true;
-
-      const readQuestion = async () => {
-        // Small delay to ensure UI is ready
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        let textToRead = '';
-
-        // Include scenario context for first question
-        if (scenarioContext && currentIndex === 0) {
-          textToRead += `シナリオ: ${scenarioContext.title}。${scenarioContext.description}。`;
-          if (scenarioContext.patientInfo) {
-            textToRead += `患者情報: ${scenarioContext.patientInfo}。`;
-          }
-        }
-
-        textToRead += `問題${currentIndex + 1}。${questions[currentIndex].text}`;
-
-        await speech.speak(textToRead);
-      };
-
-      readQuestion();
+    if (phase !== 'question' || !questions[currentIndex] || !autoReadEnabled) {
+      return;
     }
-  }, [phase, currentIndex, questions, scenarioContext, autoReadEnabled, speech.speak]);
+
+    if (hasReadCurrentQuestion.current) {
+      return;
+    }
+
+    hasReadCurrentQuestion.current = true;
+    console.log('Auto-reading question:', currentIndex + 1);
+
+    const readQuestion = async () => {
+      // Small delay to ensure UI is ready
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      let textToRead = '';
+
+      // Include scenario context for first question
+      if (scenarioContext && currentIndex === 0) {
+        textToRead += `シナリオ: ${scenarioContext.title}。${scenarioContext.description}。`;
+        if (scenarioContext.patientInfo) {
+          textToRead += `患者情報: ${scenarioContext.patientInfo}。`;
+        }
+      }
+
+      textToRead += `問題${currentIndex + 1}。${questions[currentIndex].text}`;
+
+      console.log('Speaking text:', textToRead.substring(0, 50) + '...');
+      await speech.speak(textToRead);
+    };
+
+    readQuestion();
+  }, [phase, currentIndex, questions, scenarioContext, autoReadEnabled]);
 
   // Reset read flag when question changes
   useEffect(() => {
