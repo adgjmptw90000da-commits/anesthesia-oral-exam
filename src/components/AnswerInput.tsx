@@ -120,7 +120,7 @@ export function AnswerInput({
                   </svg>
                 </button>
               </div>
-              <p className="text-center text-sm text-gray-600">
+              <p className="text-center text-sm text-gray-700">
                 {isListening ? '「回答終了」または停止ボタンで終了' : '「回答開始」または開始ボタンで録音'}
               </p>
             </>
@@ -174,8 +174,8 @@ export function AnswerInput({
       {/* Voice Command Help */}
       {speechRecognitionSupported && (
         <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs font-medium text-gray-600 mb-1">音声コマンド</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs font-medium text-gray-700 mb-1">音声コマンド</p>
+          <p className="text-xs text-gray-700">
             「回答開始」「回答終了」「次へ」「スキップ」「もう一度」
           </p>
         </div>

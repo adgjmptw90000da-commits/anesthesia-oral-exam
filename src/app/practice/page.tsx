@@ -303,7 +303,7 @@ export default function PracticePage() {
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">エラー</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-gray-700 mb-4">{error}</p>
               <button
                 onClick={() => router.push('/')}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -315,7 +315,7 @@ export default function PracticePage() {
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="animate-spin w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
               <h2 className="text-xl font-bold text-gray-800 mb-2">問題を生成中...</h2>
-              <p className="text-gray-600">AIが文献から問題を作成しています</p>
+              <p className="text-gray-700">AIが文献から問題を作成しています</p>
             </div>
           )}
         </div>
@@ -348,21 +348,21 @@ export default function PracticePage() {
         <header className="flex items-center justify-between mb-6">
           <button
             onClick={handleNewSession}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             終了
           </button>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-700">
             {sessionData?.pdfFileName}
           </div>
         </header>
 
         {/* Progress Bar */}
         <div className="max-w-2xl mx-auto mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+          <div className="flex justify-between text-sm text-gray-700 mb-2">
             <span>{sessionData?.mode === 'scenario' ? 'シナリオ問題' : 'シンプル問題'}</span>
             <span>{currentIndex + 1} / {questions.length}</span>
           </div>

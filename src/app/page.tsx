@@ -47,7 +47,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
             麻酔科口頭試問対策
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-800">
             PDFの文献を元にAIが問題を作成・採点します
           </p>
         </header>
@@ -86,7 +86,7 @@ export default function Home() {
                 <h3 className="font-bold text-lg text-gray-800 mb-2">
                   シンプル問題
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   基本的な知識を問う問題を連続で出題します。短時間で効率よく学習できます。
                 </p>
               </button>
@@ -101,7 +101,7 @@ export default function Home() {
                 <h3 className="font-bold text-lg text-gray-800 mb-2">
                   シナリオ問題
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   実際の症例に基づいた臨床シナリオで、段階的に問題が進行します。
                 </p>
               </button>
@@ -126,7 +126,7 @@ export default function Home() {
                 {questionCount}
               </span>
             </div>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-700">
               {mode === 'simple' ? `${questionCount}問連続で出題されます` : `1シナリオに対して${questionCount}問出題されます`}
             </p>
           </section>
@@ -145,7 +145,7 @@ export default function Home() {
                 w-full py-5 rounded-xl font-bold text-xl transition-all
                 ${pdfContent && !isStarting
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+                  : 'bg-gray-300 text-gray-700 cursor-not-allowed'}
               `}
             >
               {isStarting ? (
@@ -170,10 +170,10 @@ export default function Home() {
               </svg>
               音声操作対応
             </h3>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-sm text-gray-700 mb-2">
               運転中でも使用できるよう、以下の音声コマンドに対応しています：
             </p>
-            <ul className="text-sm text-gray-600 space-y-1">
+            <ul className="text-sm text-gray-700 space-y-1">
               <li>・「回答開始」「開始」 - 回答の録音を開始</li>
               <li>・「回答終了」「終了」 - 回答の録音を終了</li>
               <li>・「次へ」 - 次の問題へ進む</li>

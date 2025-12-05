@@ -35,10 +35,10 @@ export function EvaluationDisplay({
       {/* Score Display */}
       <div className={`flex items-center justify-center p-6 rounded-xl ${scoreBgColor}`}>
         <div className="text-center">
-          <p className="text-sm font-medium text-gray-600 mb-1">スコア</p>
+          <p className="text-sm font-medium text-gray-700 mb-1">スコア</p>
           <p className={`text-5xl font-bold ${scoreColor}`}>
             {evaluation.score}
-            <span className="text-2xl text-gray-500">/{evaluation.maxScore}</span>
+            <span className="text-2xl text-gray-700">/{evaluation.maxScore}</span>
           </p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export function EvaluationDisplay({
           className={`
             w-full flex items-center justify-center gap-2 py-3 rounded-lg
             ${isSpeaking
-              ? 'bg-gray-100 text-gray-400'
+              ? 'bg-gray-100 text-gray-600'
               : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}
           `}
         >

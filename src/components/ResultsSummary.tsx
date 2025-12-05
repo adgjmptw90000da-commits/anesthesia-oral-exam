@@ -40,7 +40,7 @@ export function ResultsSummary({
         </h2>
 
         <div className={`text-center p-8 rounded-xl ${gradeInfo.bg} mb-6`}>
-          <p className="text-sm text-gray-600 mb-2">総合評価</p>
+          <p className="text-sm text-gray-700 mb-2">総合評価</p>
           <p className={`text-7xl font-bold ${gradeInfo.color}`}>
             {gradeInfo.grade}
           </p>
@@ -51,19 +51,19 @@ export function ResultsSummary({
 
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-500">合計得点</p>
+            <p className="text-sm text-gray-700">合計得点</p>
             <p className="text-2xl font-bold text-gray-800">
-              {totalScore}<span className="text-sm text-gray-500">/{maxTotalScore}</span>
+              {totalScore}<span className="text-sm text-gray-700">/{maxTotalScore}</span>
             </p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-500">正答率</p>
+            <p className="text-sm text-gray-700">正答率</p>
             <p className="text-2xl font-bold text-gray-800">
               {averageScore.toFixed(1)}%
             </p>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-500">問題数</p>
+            <p className="text-sm text-gray-700">問題数</p>
             <p className="text-2xl font-bold text-gray-800">
               {questions.length}問
             </p>
@@ -84,7 +84,7 @@ export function ResultsSummary({
               <div key={question.id} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-500 mb-1">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       問題 {index + 1}
                     </p>
                     <p className="text-gray-800 line-clamp-2">{question.text}</p>
@@ -110,17 +110,17 @@ export function ResultsSummary({
                     </summary>
                     <div className="mt-3 space-y-3 text-sm">
                       <div>
-                        <p className="font-medium text-gray-600">あなたの回答:</p>
+                        <p className="font-medium text-gray-700">あなたの回答:</p>
                         <p className="text-gray-800 mt-1">{answer.userAnswer || '（スキップ）'}</p>
                       </div>
                       {evaluation && (
                         <>
                           <div>
-                            <p className="font-medium text-gray-600">模範回答:</p>
+                            <p className="font-medium text-gray-700">模範回答:</p>
                             <p className="text-gray-800 mt-1">{evaluation.modelAnswer}</p>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-600">フィードバック:</p>
+                            <p className="font-medium text-gray-700">フィードバック:</p>
                             <p className="text-gray-800 mt-1">{evaluation.feedback}</p>
                           </div>
                         </>

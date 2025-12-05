@@ -37,7 +37,7 @@ export function QuestionDisplay({
       )}
 
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-gray-500">
+        <span className="text-sm font-medium text-gray-700">
           問題 {questionNumber} / {totalQuestions}
         </span>
         {onReadQuestion && (
@@ -67,7 +67,7 @@ export function QuestionDisplay({
       </div>
 
       {question.reference && (
-        <p className="mt-4 text-xs text-gray-500">
+        <p className="mt-4 text-xs text-gray-700">
           参考: {question.reference}
         </p>
       )}

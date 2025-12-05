@@ -130,7 +130,7 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
         <label htmlFor="pdf-upload" className="cursor-pointer">
           <div className="flex flex-col items-center gap-4">
             <svg
-              className="w-12 h-12 text-gray-400"
+              className="w-12 h-12 text-gray-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
               <p className="text-lg font-medium text-gray-700">
                 {isProcessing ? 'PDF解析中...' : 'PDFファイルをドロップ'}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-700 mt-1">
                 またはクリックしてファイルを選択
               </p>
             </div>
