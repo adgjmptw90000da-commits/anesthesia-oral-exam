@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+import { useState, useCallback, useRef } from 'react';
 
 interface PDFUploadProps {
   onUploadComplete: (content: string, fileName: string) => void;
@@ -11,15 +10,21 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pdfjsRef = useRef<typeof import('pdfjs-dist') | null>(null);
 
-  useEffect(() => {
-    // Set worker source for PDF.js (using local worker file)
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
-  }, []);
+  const loadPdfjs = async () => {
+    if (!pdfjsRef.current) {
+      const pdfjs = await import('pdfjs-dist');
+      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+      pdfjsRef.current = pdfjs;
+    }
+    return pdfjsRef.current;
+  };
 
   const extractText = async (file: File): Promise<string> => {
+    const pdfjs = await loadPdfjs();
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     const textParts: string[] = [];
 
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -50,7 +55,6 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
       console.log('First 500 chars:', text.slice(0, 500));
 
       if (!text || text.trim().length < 10) {
-        // テキストレイヤーがない可能性 - ファイル名だけで続行するか確認
         const confirmContinue = window.confirm(
           'PDFからテキストをほとんど抽出できませんでした。\n' +
           'このPDFはテキストレイヤーを持たない画像PDFの可能性があります。\n\n' +
