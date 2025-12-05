@@ -15,7 +15,7 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
   const loadPdfjs = async () => {
     if (!pdfjsRef.current) {
       const pdfjs = await import('pdfjs-dist');
-      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
+      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       pdfjsRef.current = pdfjs;
     }
     return pdfjsRef.current;
@@ -24,7 +24,11 @@ export function PDFUpload({ onUploadComplete }: PDFUploadProps) {
   const extractText = async (file: File): Promise<string> => {
     const pdfjs = await loadPdfjs();
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjs.getDocument({
+      data: arrayBuffer,
+      cMapUrl: '/cmaps/',
+      cMapPacked: true,
+    }).promise;
     const textParts: string[] = [];
 
     for (let i = 1; i <= pdf.numPages; i++) {
